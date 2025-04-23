@@ -4,26 +4,32 @@ import datetime
 
 app = Flask(__name__)
 
-account_balance = 10000  
+account_balance = 10000
 
 merchants = ["Amazon", "Flipkart", "Swiggy", "Zomato", "Uber", "Google Play", "Paytm", "Netflix"]
 
 def generate_transaction():
     global account_balance
     merchant = random.choice(merchants)
-    amount = random.randint(50, 500)  # Random transaction amount
-    transaction_type = "debit" if random.random() > 0.1 else "credit"  # Mostly debit
+    amount = random.randint(50, 500)
+    transaction_type = "debit" if random.random() > 0.1 else "credit"
     time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    
     if transaction_type == "debit":
-        account_balance -= amount  
+        account_balance -= amount
     else:
-        account_balance += amount  
+        account_balance += amount
+
     return {
         "merchant": merchant,
         "amount": amount,
         "type": transaction_type,
         "time": time
     }
+
+@app.route('/')
+def home():
+    return jsonify({"message": "Welcome to PGBankAPI!"})
 
 @app.route('/balance', methods=['GET'])
 def get_balance():
