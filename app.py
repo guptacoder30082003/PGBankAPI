@@ -20,7 +20,8 @@ def generate_transaction(user_id):
     user = users[user_id]
     merchant = random.choice(merchants)
     amount = random.randint(50, 500)
-    transaction_type = "debit" if random.random() > 0.8 else "credit"
+    # 90% chance of debit, 10% chance of credit
+    transaction_type = "debit" if random.random() > 0.1 else "credit"
     time_of_transaction = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     if transaction_type == "debit":
@@ -35,7 +36,8 @@ def generate_transaction(user_id):
         "time": time_of_transaction
     }
 
-    user["transactions_history"].append(transaction)
+    # Only keep the most recent transaction
+    user["transactions_history"] = [transaction]
     return transaction
 
 @app.route('/', methods=['GET', 'POST'])
@@ -63,11 +65,8 @@ def home():
         "balance": user["account_balance"],
         "monthly_budget": user["monthly_budget"],
         "monthly_spent": monthly_spent,
-        "transactions": user["transactions_history"][-50:],
-        "new_transaction": new_transaction
+        "transaction": new_transaction  # Only returning the single transaction
     })
 
 if __name__ == '__main__':
-    for _ in range(5):
-        generate_transaction("default_user")
     app.run(host='0.0.0.0', port=10000, debug=True)
