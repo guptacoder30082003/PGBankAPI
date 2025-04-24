@@ -4,6 +4,7 @@ import datetime
 
 app = Flask(__name__)
 
+# Simulated user data
 users = {
     "user1": {
         "account_balance": 10000,
@@ -12,8 +13,10 @@ users = {
     }
 }
 
+# List of sample merchants
 merchants = ["Amazon", "Flipkart", "Swiggy", "Zomato", "Uber", "Google Play", "Paytm", "Netflix"]
 
+# Function to create 1 new transaction
 def generate_transaction(user_id):
     user = users[user_id]
     merchant = random.choice(merchants)
@@ -34,29 +37,23 @@ def generate_transaction(user_id):
     }
 
     user["transactions_history"].append(transaction)
+    return transaction
 
+# Create a new transaction and return latest data
 def get_transaction_data(user_id='user1'):
     if user_id not in users:
         return {"error": "User not found"}, 404
 
-    generate_transaction(user_id)  # <-- generate new transaction every time
-
+    transaction = generate_transaction(user_id)
     user = users[user_id]
-    now = datetime.datetime.now()
-    current_month = now.month
-
-    monthly_spent = sum(
-        t["amount"] for t in user["transactions_history"]
-        if t["type"] == "debit" and datetime.datetime.strptime(t["time"], "%Y-%m-%d %H:%M:%S").month == current_month
-    )
 
     return {
         "balance": user["account_balance"],
-        "transactions": user["transactions_history"][-50:],
-        "monthly_spent": monthly_spent,
+        "transaction": transaction,
         "monthly_budget": user["monthly_budget"]
     }
 
+# Root route ("/") returns latest data
 @app.route('/')
 def home():
     data = get_transaction_data()
@@ -64,6 +61,7 @@ def home():
         return jsonify(data[0]), data[1]
     return jsonify(data)
 
+# Same for "/transactions" if frontend uses it
 @app.route('/transactions', methods=['GET'])
 def get_transactions():
     user_id = request.args.get('user_id', 'user1')
@@ -72,6 +70,7 @@ def get_transactions():
         return jsonify(data[0]), data[1]
     return jsonify(data)
 
+# Let frontend (dashboard) set the monthly budget
 @app.route('/set-budget', methods=['POST'])
 def set_budget():
     user_id = request.json.get('user_id', 'user1')
@@ -86,5 +85,6 @@ def set_budget():
     users[user_id]["monthly_budget"] = budget
     return jsonify({"message": "Budget updated successfully"}), 200
 
+# Start the Flask app
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=10000)
